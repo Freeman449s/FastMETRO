@@ -1,0 +1,15 @@
+使用以下命令，在3DPW上运行（evaluate）：
+python -m torch.distributed.launch --nproc_per_node=1 \
+       src/tools/run_fastmetro_bodymesh.py \
+       --val_yaml 3dpw/test_has_gender.yaml \
+       --arch hrnet-w64 \
+       --model_name FastMETRO-L \
+       --num_workers 4 \
+       --per_gpu_eval_batch_size 16 \
+       --run_evaluation \
+       --resume_checkpoint ./models/fastmetro_checkpoint/FastMETRO-L-H64_3dpw_state_dict.bin \
+       --output_dir FastMETRO-L-H64_3dpw_eval/
+       --use_smpl_param_regressor
+       
+nproc_per_node被改为1，因为只有1个GPU。
+增加了use_smpl_param_regressor参数，以使用SMPL参数回归器。
