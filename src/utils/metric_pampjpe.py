@@ -71,7 +71,9 @@ def compute_similarity_transform_batch(S1, S2):
     return S1_hat
 
 def reconstruction_error(S1, S2, reduction='mean'):
-    """Do Procrustes alignment and compute reconstruction error."""
+    """
+    进行Procrustes对齐，再计算重建误差
+    """
     S1_hat = compute_similarity_transform_batch(S1, S2)
     re = np.sqrt( ((S1_hat - S2)** 2).sum(axis=-1)).mean(axis=-1)
     if reduction == 'mean':

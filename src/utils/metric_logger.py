@@ -6,6 +6,9 @@ Basic logger. It Computes and stores the average and current value
 """
 
 class AverageMeter(object):
+    """
+    自动更新总和、数目、均值的工具类
+    """
     
     def __init__(self):
         self.reset()
