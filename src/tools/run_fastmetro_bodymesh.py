@@ -88,7 +88,7 @@ def mean_per_joint_position_error(pred, gt, has_3d_joints):
     :param has_3d_joints: 样本是否有关节点标注
     :return: 批量样本上的MPJPE
     """
-    gt = gt[has_3d_joints == 1] # 以bool类型作为索引，用bool值指示是否取Tensor单元。如果为False，将返回不含任何元素的Tensor
+    gt = gt[has_3d_joints == 1]  # 以bool类型作为索引，用bool值指示是否取Tensor单元。如果为False，将返回不含任何元素的Tensor
     gt = gt[:, :, :-1]
     pred = pred[has_3d_joints == 1]
     with torch.no_grad():
@@ -400,7 +400,7 @@ def run_train(args, train_dataloader, val_dataloader, FastMETRO_model, smpl, mes
         out = FastMETRO_model(images)
         pred_cam, pred_3d_joints_from_token = out['pred_cam'], out['pred_3d_joints']
         pred_3d_vertices_coarse, pred_3d_vertices_intermediate, pred_3d_vertices_fine = out['pred_3d_vertices_coarse'], \
-        out['pred_3d_vertices_intermediate'], out['pred_3d_vertices_fine']
+            out['pred_3d_vertices_intermediate'], out['pred_3d_vertices_fine']
 
         # obtain 3d joints, which are regressed from the full mesh
         pred_3d_joints_from_smpl = smpl.get_h36m_joints(pred_3d_vertices_fine)  # batch_size X 17 X 3
@@ -425,31 +425,31 @@ def run_train(args, train_dataloader, val_dataloader, FastMETRO_model, smpl, mes
 
         # compute 3d joint loss  
         loss_3d_joints = (
-                    keypoint_3d_loss(criterion_3d_keypoints, pred_3d_joints_from_token, gt_3d_joints, has_3d_joints,
-                                     args.device) + \
-                    keypoint_3d_loss(criterion_3d_keypoints, pred_3d_joints_from_smpl, gt_3d_joints, has_3d_joints,
-                                     args.device))
+                keypoint_3d_loss(criterion_3d_keypoints, pred_3d_joints_from_token, gt_3d_joints, has_3d_joints,
+                                 args.device) + \
+                keypoint_3d_loss(criterion_3d_keypoints, pred_3d_joints_from_smpl, gt_3d_joints, has_3d_joints,
+                                 args.device))
         # compute 3d vertex loss
         loss_3d_vertices = (
-                    args.vertices_coarse_loss_weight * vertices_loss(criterion_3d_vertices, pred_3d_vertices_coarse,
-                                                                     gt_3d_vertices_coarse, has_smpl, args.device) + \
-                    args.vertices_intermediate_loss_weight * vertices_loss(criterion_3d_vertices,
-                                                                           pred_3d_vertices_intermediate,
-                                                                           gt_3d_vertices_intermediate, has_smpl,
-                                                                           args.device) + \
-                    args.vertices_fine_loss_weight * vertices_loss(criterion_3d_vertices, pred_3d_vertices_fine,
-                                                                   gt_3d_vertices_fine, has_smpl, args.device))
+                args.vertices_coarse_loss_weight * vertices_loss(criterion_3d_vertices, pred_3d_vertices_coarse,
+                                                                 gt_3d_vertices_coarse, has_smpl, args.device) + \
+                args.vertices_intermediate_loss_weight * vertices_loss(criterion_3d_vertices,
+                                                                       pred_3d_vertices_intermediate,
+                                                                       gt_3d_vertices_intermediate, has_smpl,
+                                                                       args.device) + \
+                args.vertices_fine_loss_weight * vertices_loss(criterion_3d_vertices, pred_3d_vertices_fine,
+                                                               gt_3d_vertices_fine, has_smpl, args.device))
         # compute edge length loss (GT supervision & self regularization) & normal vector loss
         loss_edge_normal = (
-                    args.edge_gt_loss_weight * edge_gt_loss(pred_3d_vertices_intermediate, gt_3d_vertices_intermediate,
-                                                            has_smpl, args.device) + \
-                    args.edge_self_loss_weight * edge_self_loss(pred_3d_vertices_intermediate, has_smpl, args.device) + \
-                    args.normal_loss_weight * normal_loss(pred_3d_vertices_intermediate, gt_3d_vertices_intermediate,
-                                                          has_smpl, args.device))
+                args.edge_gt_loss_weight * edge_gt_loss(pred_3d_vertices_intermediate, gt_3d_vertices_intermediate,
+                                                        has_smpl, args.device) + \
+                args.edge_self_loss_weight * edge_self_loss(pred_3d_vertices_intermediate, has_smpl, args.device) + \
+                args.normal_loss_weight * normal_loss(pred_3d_vertices_intermediate, gt_3d_vertices_intermediate,
+                                                      has_smpl, args.device))
         # compute 2d joint loss
         loss_2d_joints = (
-                    keypoint_2d_loss(criterion_2d_keypoints, pred_2d_joints_from_token, gt_2d_joints, has_2d_joints) + \
-                    keypoint_2d_loss(criterion_2d_keypoints, pred_2d_joints_from_smpl, gt_2d_joints, has_2d_joints))
+                keypoint_2d_loss(criterion_2d_keypoints, pred_2d_joints_from_token, gt_2d_joints, has_2d_joints) + \
+                keypoint_2d_loss(criterion_2d_keypoints, pred_2d_joints_from_smpl, gt_2d_joints, has_2d_joints))
 
         # empirically set hyperparameters to balance different losses
         loss = (args.joints_3d_loss_weight * loss_3d_joints + \
@@ -597,7 +597,7 @@ def run_train(args, train_dataloader, val_dataloader, FastMETRO_model, smpl, mes
     )
 
 
-def run_eval(args, val_dataloader, FastMETRO_model: FastMETRO_Network, smpl, renderer):
+def run_eval(args, val_dataloader, FastMETRO_model: FastMETRO_Network, smpl: SMPL, renderer):
     smpl.eval()
 
     epoch = 0
@@ -618,7 +618,7 @@ def run_eval(args, val_dataloader, FastMETRO_model: FastMETRO_Network, smpl, ren
 
     if args.use_smpl_param_regressor:
         val_smpl_mPVPE, val_smpl_mPJPE, val_smpl_PAmPJPE = val_result['val_smpl_mPVPE'], val_result['val_smpl_mPJPE'], \
-        val_result['val_smpl_PAmPJPE']
+            val_result['val_smpl_PAmPJPE']
         logger.info(
             ' '.join(['Validation', 'Epoch: {ep}', ]).format(ep=epoch)
             + '  MPVPE: {:6.2f}, MPJPE: {:6.2f}, PA-MPJPE: {:6.2f} '.format(1000 * val_mPVPE, 1000 * val_mPJPE,
@@ -639,7 +639,18 @@ def run_eval(args, val_dataloader, FastMETRO_model: FastMETRO_Network, smpl, ren
     return
 
 
-def run_validate(args, val_dataloader, FastMETRO_model, epoch, smpl, renderer):
+def run_validate(args, val_dataloader, FastMETRO_model: FastMETRO_Network, epoch: int, smpl: SMPL, renderer):
+    """
+    运行验证过程
+    :param args: 命令行参数
+    :param val_dataloader: DataLoader
+    :param FastMETRO_model: FastMETRO模型
+    :param epoch: 周期
+    :param smpl: SMPL模型
+    :param renderer: 渲染器
+    :return: 存储误差的字典。使用键值'val_mPVPE'，'val_mPJPE'，'val_PAmPJPE'，'val_count'，'val_smpl_mPVPE'，
+    'val_smpl_mPJPE'，'val_smpl_PAmPJPE'获取各个指标的数值。
+    """
     mPVPE = AverageMeter()
     mPJPE = AverageMeter()
     PAmPJPE = AverageMeter()
@@ -650,14 +661,15 @@ def run_validate(args, val_dataloader, FastMETRO_model, epoch, smpl, renderer):
     FastMETRO_model.eval()
     smpl.eval()
     with torch.no_grad():
-        for iteration, (img_keys, images, annotations) in enumerate(val_dataloader):
+        for iteration, (img_keys, images, annotations) in enumerate(val_dataloader):  # img_keys不会用到
             # compute output
             images = images.cuda(args.device)
             # gt 3d joints
             gt_3d_joints = annotations['joints_3d'].cuda(args.device)  # batch_size X 24 X 4 (last for confidence)
             gt_3d_pelvis = gt_3d_joints[:, cfg.J24_NAME.index('Pelvis'), :3]  # batch_size X 3 pelvis 骨盆
             gt_3d_joints = gt_3d_joints[:, cfg.J24_TO_J14, :]  # batch_size X 14 X 4
-            gt_3d_joints[:, :, :3] = gt_3d_joints[:, :, :3] - gt_3d_pelvis[:, None, :]  # batch_size X 14 X 4 None可以增加一个维度
+            gt_3d_joints[:, :, :3] = gt_3d_joints[:, :, :3] - gt_3d_pelvis[:, None,
+                                                              :]  # batch_size X 14 X 4 None可以增加一个维度
             has_3d_joints = annotations['has_3d_joints'].cuda(args.device)  # batch_size
 
             # gt params for smpl
@@ -719,7 +731,7 @@ def run_validate(args, val_dataloader, FastMETRO_model, epoch, smpl, renderer):
             error_joints = mean_per_joint_position_error(pred_3d_joints_from_smpl, gt_3d_joints, has_3d_joints)
             error_joints_pa = reconstruction_error(pred_3d_joints_from_smpl.cpu().numpy(),
                                                    gt_3d_joints[:, :, :3].cpu().numpy(), reduction=None)
-            if len(error_vertices) > 0: # 每个批量更新一次
+            if len(error_vertices) > 0:  # 每个批量更新一次
                 mPVPE.update(np.mean(error_vertices), int(torch.sum(has_smpl)))
             if len(error_joints) > 0:
                 mPJPE.update(np.mean(error_joints), int(torch.sum(has_3d_joints)))
@@ -780,6 +792,164 @@ def run_validate(args, val_dataloader, FastMETRO_model, epoch, smpl, renderer):
         val_result['val_smpl_PAmPJPE'] = val_smpl_PAmPJPE
 
     return val_result
+
+
+def batchValidate(images: torch.Tensor, annotations: torch.Tensor, FastMETRO_model: FastMETRO_Network, smpl: SMPL,
+                  renderer, independentCall: bool, epoch: int = 0, iteration: int = 1,
+                  mPVPE: AverageMeter = None, mPJPE: AverageMeter = None, PAmPJPE: AverageMeter = None,
+                  smpl_mPVPE: AverageMeter = None, smpl_mPJPE: AverageMeter = None, smpl_PAmPJPE: AverageMeter = None):
+    """
+    对批量数据进行验证
+    :param images: 批量图像
+    :param annotations: 批量标注
+    :param FastMETRO_model: FastMETRO模型
+    :param smpl: SMPL模型
+    :param renderer: 渲染器
+    :param independentCall: 是否为独立调用。独立调用将返回输入批量上的误差，否则将仅更新计数器
+    :param epoch: 周期序号
+    :param iteration: 迭代次数序号
+    :param mPVPE: mPVPE计数器。非独立调用必须传入此参数
+    :param mPJPE: mPJPE计数器。非独立调用必须传入此参数
+    :param PAmPJPE: PAmPJPE计数器。非独立调用必须传入此参数
+    :param smpl_mPVPE: smpl_mPVPE计数器。非独立调用必须传入此参数
+    :param smpl_mPJPE: smpl_mPJPE计数器。非独立调用必须传入此参数
+    :param smpl_PAmPJPE: smpl_PAmPJPE计数器。非独立调用必须传入此参数
+    :return: 独立调用将返回存储误差的字典；使用键值'val_mPVPE'，'val_mPJPE'，'val_PAmPJPE'，'val_count'，'val_smpl_mPVPE'，
+    'val_smpl_mPJPE'，'val_smpl_PAmPJPE'获取各个指标的数值。非独立调用将返回None。
+    """
+    # 初始化计数器
+    if independentCall:
+        mPVPE = AverageMeter()
+        mPJPE = AverageMeter()
+        PAmPJPE = AverageMeter()
+        smpl_mPVPE = AverageMeter()
+        smpl_mPJPE = AverageMeter()
+        smpl_PAmPJPE = AverageMeter()
+    else:
+        if mPVPE is None or mPJPE is None or PAmPJPE is None or smpl_mPVPE is None or smpl_mPJPE is None or smpl_PAmPJPE is None:
+            raise RuntimeError("AverageMeters must be specified for a non-independent call.")
+
+    # compute output
+    images = images.cuda(args.device)
+    # gt 3d joints
+    gt_3d_joints = annotations['joints_3d'].cuda(args.device)  # batch_size X 24 X 4 (last for confidence)
+    gt_3d_pelvis = gt_3d_joints[:, cfg.J24_NAME.index('Pelvis'), :3]  # batch_size X 3 pelvis 骨盆
+    gt_3d_joints = gt_3d_joints[:, cfg.J24_TO_J14, :]  # batch_size X 14 X 4
+    gt_3d_joints[:, :, :3] = gt_3d_joints[:, :, :3] - gt_3d_pelvis[:, None, :]  # batch_size X 14 X 4 None可以增加一个维度
+    has_3d_joints = annotations['has_3d_joints'].cuda(args.device)  # batch_size
+
+    # gt params for smpl
+    gt_pose = annotations['pose'].cuda(args.device)  # batch_size X 72
+    gt_betas = annotations['betas'].cuda(args.device)  # batch_size X 10
+    has_smpl = annotations['has_smpl'].cuda(args.device)  # batch_size
+
+    # generate simplified mesh
+    gt_3d_vertices_fine = smpl(gt_pose, gt_betas)  # batch_size X 6890 X 3
+
+    # normalize ground-truth vertices & joints (based on smpl's pelvis)
+    # smpl.get_h36m_joints: from vertex to joint (using smpl)
+    gt_smpl_3d_joints = smpl.get_h36m_joints(gt_3d_vertices_fine)  # batch_size X 17 X 3
+    gt_smpl_3d_pelvis = gt_smpl_3d_joints[:, cfg.H36M_J17_NAME.index('Pelvis'), :]  # batch_size X 3
+    gt_3d_vertices_fine = gt_3d_vertices_fine - gt_smpl_3d_pelvis[:, None, :]  # batch_size X 6890 X 3
+
+    # forward-pass
+    out = FastMETRO_model(images)
+    pred_cam, pred_3d_vertices_fine = out['pred_cam'], out['pred_3d_vertices_fine']
+
+    # obtain 3d joints, which are regressed from the full mesh
+    pred_3d_joints_from_smpl = smpl.get_h36m_joints(pred_3d_vertices_fine)  # batch_size X 17 X 3
+    pred_3d_joints_from_smpl_pelvis = pred_3d_joints_from_smpl[:, cfg.H36M_J17_NAME.index('Pelvis'), :]
+    pred_3d_joints_from_smpl = pred_3d_joints_from_smpl[:, cfg.H36M_J17_TO_J14, :]  # batch_size X 14 X 3
+    # normalize predicted vertices
+    pred_3d_vertices_fine = pred_3d_vertices_fine - pred_3d_joints_from_smpl_pelvis[:, None,
+                                                    :]  # batch_size X 6890 X 3
+    # normalize predicted joints
+    pred_3d_joints_from_smpl = pred_3d_joints_from_smpl - pred_3d_joints_from_smpl_pelvis[:, None,
+                                                          :]  # batch_size X 14 X 3
+
+    if args.use_smpl_param_regressor:
+        pred_rotmat, pred_betas = out['pred_rotmat'], out['pred_betas']
+        pred_smpl_3d_vertices = smpl(pred_rotmat, pred_betas)  # batch_size X 6890 X 3
+        pred_smpl_3d_joints = smpl.get_h36m_joints(pred_smpl_3d_vertices)  # batch_size X 17 X 3
+        pred_smpl_3d_joints_pelvis = pred_smpl_3d_joints[:, cfg.H36M_J17_NAME.index('Pelvis'), :]
+        pred_smpl_3d_joints = pred_smpl_3d_joints[:, cfg.H36M_J17_TO_J14, :]  # batch_size X 14 X 3
+        pred_smpl_3d_vertices = pred_smpl_3d_vertices - pred_smpl_3d_joints_pelvis[:, None,
+                                                        :]  # batch_size X 6890 X 3
+        pred_smpl_3d_joints = pred_smpl_3d_joints - pred_smpl_3d_joints_pelvis[:, None,
+                                                    :]  # batch_size X 14 X 3
+        # measure errors
+        error_smpl_vertices = mean_per_vertex_position_error(pred_smpl_3d_vertices, gt_3d_vertices_fine,
+                                                             has_smpl)
+        error_smpl_joints = mean_per_joint_position_error(pred_smpl_3d_joints, gt_3d_joints, has_3d_joints)
+        error_smpl_joints_pa = reconstruction_error(pred_smpl_3d_joints.cpu().numpy(),
+                                                    gt_3d_joints[:, :, :3].cpu().numpy(), reduction=None)
+        if len(error_smpl_vertices) > 0:
+            smpl_mPVPE.update(np.mean(error_smpl_vertices), int(torch.sum(has_smpl)))
+        if len(error_smpl_joints) > 0:
+            smpl_mPJPE.update(np.mean(error_smpl_joints), int(torch.sum(has_3d_joints)))
+        if len(error_smpl_joints_pa) > 0:
+            smpl_PAmPJPE.update(np.mean(error_smpl_joints_pa), int(torch.sum(has_3d_joints)))
+
+    # ================================================================================
+    # measure errors
+    # ================================================================================
+    error_vertices = mean_per_vertex_position_error(pred_3d_vertices_fine, gt_3d_vertices_fine, has_smpl)
+    error_joints = mean_per_joint_position_error(pred_3d_joints_from_smpl, gt_3d_joints, has_3d_joints)
+    error_joints_pa = reconstruction_error(pred_3d_joints_from_smpl.cpu().numpy(),
+                                           gt_3d_joints[:, :, :3].cpu().numpy(), reduction=None)
+    if len(error_vertices) > 0:  # 每个批量更新一次
+        mPVPE.update(np.mean(error_vertices), int(torch.sum(has_smpl)))
+    if len(error_joints) > 0:
+        mPJPE.update(np.mean(error_joints), int(torch.sum(has_3d_joints)))
+    if len(error_joints_pa) > 0:
+        PAmPJPE.update(np.mean(error_joints_pa), int(torch.sum(has_3d_joints)))
+
+    # visualization
+    if args.run_eval_and_visualize:
+        if (iteration % 20) == 0:
+            print("Complete {} iterations!! (visualization)".format(iteration))
+        pred_2d_joints_from_smpl = orthographic_projection(pred_3d_joints_from_smpl,
+                                                           pred_cam)  # batch_size X 14 X 2
+        if args.use_smpl_param_regressor:
+            pred_smpl_2d_joints = orthographic_projection(pred_smpl_3d_joints, pred_cam)  # batch_size X 14 X 2
+            visual_imgs = visualize_mesh_with_smpl(renderer,
+                                                   annotations['ori_img'].detach(),
+                                                   pred_3d_vertices_fine.detach(),
+                                                   pred_cam.detach(),
+                                                   pred_smpl_3d_vertices.detach())
+        else:
+            visual_imgs = visualize_mesh(renderer,
+                                         annotations['ori_img'].detach(),
+                                         pred_3d_vertices_fine.detach(),
+                                         pred_cam.detach())
+        visual_imgs = visual_imgs.transpose(0, 1)
+        visual_imgs = visual_imgs.transpose(1, 2)
+        visual_imgs = np.asarray(visual_imgs)
+        if is_main_process():
+            stamp = str(epoch) + '_' + str(iteration)
+            temp_fname = args.output_dir + 'visual_' + stamp + '.jpg'
+            if args.use_opendr_renderer:
+                visual_imgs[:, :, ::-1] = visual_imgs[:, :, ::-1] * 255
+            cv2.imwrite(temp_fname, np.asarray(visual_imgs[:, :, ::-1]))
+
+    if independentCall:
+        val_mPVPE = all_gather(float(mPVPE.avg))
+        val_mPVPE = sum(val_mPVPE) / len(val_mPVPE)
+        val_mPJPE = all_gather(float(mPJPE.avg))
+        val_mPJPE = sum(val_mPJPE) / len(val_mPJPE)
+        val_PAmPJPE = all_gather(float(PAmPJPE.avg))
+        val_PAmPJPE = sum(val_PAmPJPE) / len(val_PAmPJPE)
+        val_count = all_gather(float(mPVPE.count))
+        val_count = sum(val_count)
+        val_result = {}
+        val_result['val_mPVPE'] = val_mPVPE
+        val_result['val_mPJPE'] = val_mPJPE
+        val_result['val_PAmPJPE'] = val_PAmPJPE
+        val_result['val_count'] = val_count
+
+        return val_result
+    else:
+        return None
 
 
 def visualize_mesh(renderer, images, pred_vertices, pred_cam):
