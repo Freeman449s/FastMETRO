@@ -663,7 +663,7 @@ def run_validate(args, val_dataloader, FastMETRO_model: FastMETRO_Network, epoch
     with torch.no_grad():
         for iteration, (img_keys, images, annotations) in enumerate(val_dataloader):  # img_keys不会用到
             # compute output
-            images = images.cuda(args.device)
+            images = images.cuda(args.device)  # batch_size X 3 X 224 X 224
             # gt 3d joints
             gt_3d_joints = annotations['joints_3d'].cuda(args.device)  # batch_size X 24 X 4 (last for confidence)
             gt_3d_pelvis = gt_3d_joints[:, cfg.J24_NAME.index('Pelvis'), :3]  # batch_size X 3 pelvis 骨盆
